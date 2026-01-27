@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:math';
-import 'dart:typed_data';
 import 'dart:ui' as ui;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:posthog_flutter/posthog_flutter.dart';
@@ -32,6 +32,10 @@ class ViewTreeSnapshotStatus {
   bool sentMetaEvent = false;
   Uint8List? imageBytes;
   ViewTreeSnapshotStatus(this.sentMetaEvent);
+}
+
+bool _checkImageEquality(List<Uint8List?> args) {
+  return const PHListEquality().equals(args[0], args[1]);
 }
 
 class ScreenshotCapturer {
@@ -146,7 +150,9 @@ class ScreenshotCapturer {
           return;
         }
 
-        if (const PHListEquality().equals(pngBytes, statusView.imageBytes)) {
+        final areImagesEqual = await compute(
+            _checkImageEquality, [pngBytes, statusView.imageBytes]);
+        if (areImagesEqual) {
           printIfDebug(
               'Debug: Snapshot is the same as the last one, nothing changed, do nothing.');
           recorder.endRecording().dispose();
