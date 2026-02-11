@@ -1,7 +1,5 @@
 package com.posthog.flutter
 
-import android.graphics.BitmapFactory
-import com.posthog.android.internal.base64
 import com.posthog.internal.replay.RREvent
 import com.posthog.internal.replay.RRFullSnapshotEvent
 import com.posthog.internal.replay.RRMetaEvent
@@ -9,23 +7,23 @@ import com.posthog.internal.replay.RRStyle
 import com.posthog.internal.replay.RRWireframe
 import com.posthog.internal.replay.capture
 
-class SnapshotSender {
+class SnapshotSender(private val imageUtils: ImageUtils = AndroidImageUtils()) {
     fun sendFullSnapshot(
         imageBytes: ByteArray,
         id: Int,
         x: Int,
         y: Int,
     ) {
-        val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
-        val base64String = bitmap.base64()
+        val (width, height) = imageUtils.getDimensions(imageBytes)
+        val base64String = imageUtils.encodeToBase64(imageBytes)
 
         val wireframe =
             RRWireframe(
                 id = id,
                 x = x,
                 y = y,
-                width = bitmap.width,
-                height = bitmap.height,
+                width = width,
+                height = height,
                 type = "screenshot",
                 base64 = base64String,
                 style = RRStyle(),
